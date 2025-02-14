@@ -6,7 +6,7 @@ import java.util.*;
 
 public class FileHandler {
 
-    // Lê um arquivo assembly e retorna uma lista de instruções
+    // Lê um arquivo assembly e retorna uma lista de instrucões
     public List<String> readFileLines(String filePath) {
         List<String> lines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -22,7 +22,7 @@ public class FileHandler {
     }
 
 
-    // Salva o conteúdo da memória em um arquivo
+    // Salva o conteúdo da memoria em um arquivo
     public void saveMemoryToFile(Memory memory, String filePath) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             int size = memory.getSize();
@@ -30,27 +30,27 @@ public class FileHandler {
                 writer.write(String.format("%04X: %s", i, memory.read(i)));
                 writer.newLine();
             }
-            System.out.println("Memória salva com sucesso no arquivo: " + filePath);
+            System.out.println("Memoria salva com sucesso no arquivo: " + filePath);
         } catch (IOException e) {
-            System.out.println("Erro ao salvar a memória: " + e.getMessage());
+            System.out.println("Erro ao salvar a memoria: " + e.getMessage());
         }
     }
 
-    // Carrega o conteúdo da memória a partir de um arquivo
+    // Carrega o conteúdo da memoria a partir de um arquivo
     public void loadMemoryFromFile(Memory memory, String filePath) {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // Espera o formato "endereço: valor"
+                // Espera o formato "endereco: valor"
                 String[] parts = line.split(":");
                 if (parts.length < 2) continue;
                 int address = Integer.parseInt(parts[0].trim(), 16);
                 String value = parts[1].trim();
                 memory.write(address, value);
             }
-            System.out.println("Memória carregada com sucesso do arquivo: " + filePath);
+            System.out.println("Memoria carregada com sucesso do arquivo: " + filePath);
         } catch (IOException e) {
-            System.out.println("Erro ao carregar a memória: " + e.getMessage());
+            System.out.println("Erro ao carregar a memoria: " + e.getMessage());
         }
     }
 }

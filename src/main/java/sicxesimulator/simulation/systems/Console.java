@@ -81,7 +81,7 @@ public class Console {
                     System.out.println("Falha ao montar o programa.");
                 }
                 instructions = assembledInstructions;
-                System.out.println("Montagem concluída com sucesso.");
+                System.out.println("Montagem concluida com sucesso.");
                 break;
             case "visualizar_mem":
                 if (args.length != 2) {
@@ -160,14 +160,14 @@ public class Console {
                 while (!interpreter.isFinished()) {
                     interpreter.runNextInstruction();
                 }
-                System.out.println("Execucao concluída.");
+                System.out.println("Execucao concluida.");
                 break;
             case "sair":
                 cleanConsole();
                 outputStream.print("Encerrando simulador"); // Sem quebra de linha
                 outputStream.flush();
             
-                // Criar uma transição de pausa para os pontos
+                // Criar uma transicao de pausa para os pontos
                 PauseTransition pause1 = new PauseTransition(Duration.seconds(1));
                 pause1.setOnFinished(event -> {
                     outputStream.print(".");
@@ -186,7 +186,7 @@ public class Console {
                     outputStream.flush();
                 });
             
-                // Criar a transição final para sair do sistema
+                // Criar a transicao final para sair do sistema
                 PauseTransition exitPause = new PauseTransition(Duration.seconds(4));
                 exitPause.setOnFinished(event -> System.exit(0));
             

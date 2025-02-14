@@ -16,8 +16,6 @@ public abstract class Simulation {
         Assembler assembler = new Assembler();
         Console console = new Console(virtualMachine, fileHandler, interpreter, assembler);
         cleanConsole();
-        System.out.println("Simulador SIC/XE");
-        System.out.println("Digite \"comandos\" para mais informações.\n\n");
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {
                 System.out.print("> ");

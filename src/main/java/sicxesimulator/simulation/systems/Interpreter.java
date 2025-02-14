@@ -32,7 +32,7 @@ public class Interpreter {
 
     public void runNextInstruction() {
         if (isFinished()) {
-            System.out.println("Fim da execução.");
+            System.out.println("Fim da execucao.");
             return;
         }
         Instruction instruction = instructions.get(programCounter);
@@ -161,7 +161,7 @@ public class Interpreter {
                 op.tixr(args);
                 break;
             default:
-                System.out.println("Instrução desconhecida: " + name);
+                System.out.println("Instrucao desconhecida: " + name);
                 break;
         }
     }

@@ -81,30 +81,27 @@ public class MainApp extends Application {
         });
 
         // Criando os botoes
-        Button enviarButton = new Button("Enviar");
-        enviarButton.setOnAction(this::handleInputAction);
+        Button montarButton = new Button("Montar");
+        montarButton.setOnAction(event -> handleMontageAction());
         Button executeButton = new Button("Executar");
-        executeButton.setOnAction(this::handleInputAction);
+        executeButton.setOnAction(event -> handleExecuteAction());
         Button proxButton = new Button("Proximo");
-        proxButton.setOnAction(this::handleInputAction);
+        proxButton.setOnAction(event -> handleNextAction());
         Button limparButton = new Button("Limpar");
-        limparButton.setOnAction(this::handleInputAction);
+        limparButton.setOnAction(event -> handleClearAction());
         Button sairButton = new Button("Sair");
-        sairButton.setOnAction(event -> {
-            primaryStage.close();
-            System.exit(0);
-        });
+        sairButton.setOnAction(event -> handleExitAction());
 
         // Definindo a largura dos botoes
         double buttonWidth = screenWidth * 0.05;
-        enviarButton.setPrefWidth(buttonWidth);
+        montarButton.setPrefWidth(buttonWidth);
         executeButton.setPrefWidth(buttonWidth);
         proxButton.setPrefWidth(buttonWidth);
         limparButton.setPrefWidth(buttonWidth);
         sairButton.setPrefWidth(buttonWidth);
 
         // Criando a coluna para os botoes
-        VBox buttonColumn = new VBox(30, enviarButton, executeButton, proxButton, limparButton, sairButton);
+        VBox buttonColumn = new VBox(30, montarButton, executeButton, proxButton, limparButton, sairButton);
         buttonColumn.setAlignment(Pos.CENTER_LEFT); // Alinhamento vertical ao centro
 
         // Cria a tabela de registradores
@@ -162,7 +159,6 @@ public class MainApp extends Application {
 
         // Criar a cena
         Scene scene = new Scene(contentPane, screenWidth * 0.6, screenHeight * 0.6);
-        scene.getStylesheets().add(getClass().getClassLoader().getResource("style.css").toExternalForm());
 
         // Configura a janela
         primaryStage.setScene(scene);
@@ -180,10 +176,10 @@ public class MainApp extends Application {
 
         PauseTransition pause2 = new PauseTransition(Duration.seconds(2));
         pause2.setOnFinished(event -> {
-            outputArea.appendText("Para começar digite um codigo e clique no botao \"Enviar\"." +
+            outputArea.appendText("Para comecar digite um codigo e clique no botao \"montar\"." +
             "\nApos isso, use os botoes \"Executar\" para executar o programa de uma so vez, " +
             "ou \"Proximo\" para executar o programa passo a passo. Use tambom o o botao \"Parar\" " +
-            "para parar a execuçao ou o botao \"Sair\" para finalizar o programa.\n\n");
+            "para parar a execucao ou o botao \"Sair\" para finalizar o programa.\n\n");
         });
 
         // Primeiro exibe a mensagem de boas-vindas, depois a segunda mensagem
@@ -195,6 +191,58 @@ public class MainApp extends Application {
         String command = inputField.getText();
         inputField.clear();
         processCommand(command);
+    }
+
+    // TODO ajustar a montagem para ser feita com o código de imput do usuário
+    private void handleMontageAction() {
+        outputArea.appendText("> montar\n");
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        pause.setOnFinished(event -> {
+            console.treatCommand("montar");
+            updateRegisterTable(console.getMachine());
+        });
+        pause.play();
+    }
+
+    private void handleExecuteAction() {
+        outputArea.appendText("> exec\n");
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        pause.setOnFinished(event -> {
+            console.treatCommand("exec");
+            updateRegisterTable(console.getMachine());
+        });
+        pause.play();
+    }
+
+    private void handleNextAction() {
+        outputArea.appendText("> prox\n");
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        pause.setOnFinished(event -> {
+            console.treatCommand("prox");
+            updateRegisterTable(console.getMachine());
+        });
+        pause.play();
+    }
+
+    // TODO função não implementada "limpar"
+    private void handleClearAction() {
+        outputArea.appendText("> limpar\n");
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        pause.setOnFinished(event -> {
+            console.treatCommand("sair");
+            updateRegisterTable(console.getMachine());
+        });
+        pause.play();
+    }
+
+    private void handleExitAction() {
+        outputArea.appendText("> sair\n");
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        pause.setOnFinished(event -> {
+            console.treatCommand("sair");
+            updateRegisterTable(console.getMachine());
+        });
+        pause.play();
     }
 
     private void processCommand(String command) {
