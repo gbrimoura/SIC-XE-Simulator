@@ -221,14 +221,14 @@ public class MainApp extends Application {
 
         PauseTransition pause1 = new PauseTransition(Duration.seconds(1));
         pause1.setOnFinished(event -> {
-            outputArea.appendText("Bem-vindo ao Simulador SIC/XE!\n");
+            outputArea.appendText("Bem-vindo ao Simulador SIC/XE!\n\n");
         });
 
         PauseTransition pause2 = new PauseTransition(Duration.seconds(2));
         pause2.setOnFinished(event -> {
             outputArea.appendText("Para comecar digite um codigo e clique no botao \"Montar\"." +
             "\nApos isso, use os botoes \"Executar\" para executar o programa de uma so vez, " +
-            "ou \"Proximo\" para executar o programa passo a passo. Use tambom o o botao \"Parar\" " +
+            "ou \"Proximo\" para executar o programa passo a passo.\nUse tambem o o botao \"Parar\"" +
             "para parar a execucao ou o botao \"Sair\" para finalizar o programa.\n\n");
         });
 
@@ -245,6 +245,7 @@ public class MainApp extends Application {
 
     // TODO ajustar a montagem para ser feita com o código de imput do usuário
     private void handleMontageAction() {
+        outputArea.clear();
         outputArea.appendText("> montar\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
@@ -255,6 +256,7 @@ public class MainApp extends Application {
     }
 
     private void handleExecuteAction() {
+        outputArea.clear();
         outputArea.appendText("> exec\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
@@ -265,6 +267,7 @@ public class MainApp extends Application {
     }
 
     private void handleNextAction() {
+        outputArea.clear();
         outputArea.appendText("> prox\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
@@ -276,6 +279,7 @@ public class MainApp extends Application {
 
     // TODO função não implementada "limpar"
     private void handleClearAction() {
+        outputArea.clear();
         outputArea.appendText("> limpar\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
@@ -286,6 +290,7 @@ public class MainApp extends Application {
     }
 
     private void handleExitAction() {
+        outputArea.clear();
         outputArea.appendText("> sair\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {

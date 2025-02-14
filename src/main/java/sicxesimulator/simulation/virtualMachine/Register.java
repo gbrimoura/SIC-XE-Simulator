@@ -26,6 +26,11 @@ public class Register {
 	}
 
 	/// Setters
+
+	public void setValue(int value) {
+        this.value = Integer.toString(value);
+    }
+	
 	public void setValue(String value) {
 		if (isValidHex(value)) {
 			this.value = padHex(value);

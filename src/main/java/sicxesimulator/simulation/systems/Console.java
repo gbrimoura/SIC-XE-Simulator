@@ -35,6 +35,7 @@ public class Console {
         String[] args = command.split(" ");
         switch (args[0]) {
             case "montar":
+                cleanConsole();
                 if (args.length != 2) {
                     System.out.println("Uso: montar [arquivo.asm]");
                     return;
@@ -52,9 +53,15 @@ public class Console {
                 System.out.println("Montagem concluida com sucesso.");
                 break;
             case "prox":
+                cleanConsole();
+                if (instructions == null) {
+                    System.out.println("Nenhuma instrucao carregada. Use 'montar'.");
+                    return;
+                }
                 interpreter.runNextInstruction();
                 break;
             case "exec":
+                cleanConsole();
                 if (instructions == null) {
                     System.out.println("Nenhuma instrucao carregada. Use 'montar'.");
                     return;
@@ -63,6 +70,14 @@ public class Console {
                     interpreter.runNextInstruction();
                 }
                 System.out.println("Execucao concluida.");
+                break;
+            case "parar":
+                cleanConsole();
+                if (instructions == null) {
+                    System.out.println("Nenhuma instrucao carregada. Use 'montar'.");
+                    return;
+                }
+                virtualMachine.reset();
                 break;
             case "sair":
                 cleanConsole();
@@ -125,5 +140,23 @@ public class Console {
 
     public void setOutputStream(PrintStream outputStream) {
         this.outputStream = outputStream;
+    }
+
+    public void reset() {
+        // Limpar registradores
+        for (String register : VALID_OPTIONS) {
+            virtualMachine.getRegister(register).setValue("0");  // Limpa os registradores
+        }
+        
+        // Limpar memória
+        virtualMachine.getMemory().clear();  // Supondo que a memória tenha um método clear() que limpa todos os valores
+        
+        // Limpar instruções montadas
+        instructions = new ArrayList<>();  // Limpa a lista de instruções montadas
+        
+        // Reinicializar o arquivo lido
+        fileHandler.clear();  // Supondo que o FileHandler tenha um método clear() para limpar o conteúdo lido
+        
+        System.out.println("Sistema resetado.");
     }
 }

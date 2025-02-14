@@ -6,6 +6,12 @@ import java.util.*;
 
 public class FileHandler {
 
+    private List<String> fileContent;
+
+    public FileHandler() {
+        this.fileContent = new ArrayList<>();  // Inicialize a lista
+    }
+
     // Lê um arquivo assembly e retorna uma lista de instrucões
     public List<String> readFileLines(String filePath) {
         List<String> lines = new ArrayList<>();
@@ -52,5 +58,9 @@ public class FileHandler {
         } catch (IOException e) {
             System.out.println("Erro ao carregar a memoria: " + e.getMessage());
         }
+    }
+
+    public void clear() {
+        fileContent.clear();  // Limpa o conteúdo armazenado
     }
 }
