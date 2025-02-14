@@ -283,7 +283,7 @@ public class MainApp extends Application {
         outputArea.appendText("> limpar\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
-            console.treatCommand("sair");
+            console.treatCommand("limpar");
             updateRegisterTable(console.getMachine());
         });
         pause.play();

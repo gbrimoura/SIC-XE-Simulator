@@ -71,7 +71,7 @@ public class Console {
                 }
                 System.out.println("Execucao concluida.");
                 break;
-            case "parar":
+            case "limpar":
                 cleanConsole();
                 if (instructions == null) {
                     System.out.println("Nenhuma instrucao carregada. Use 'montar'.");
