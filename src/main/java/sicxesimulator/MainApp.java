@@ -31,11 +31,18 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaPlayer.Status;
+import javafx.util.Duration;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.List;
 
 public class MainApp extends Application {
@@ -45,6 +52,7 @@ public class MainApp extends Application {
     private TextArea inputField;
     private TableView<RegisterEntry> registerTable;
     private TableView<MemoryEntry> memoryTable;
+    private MediaPlayer mediaPlayer;
 
     @Override
     public void start(Stage primaryStage) {
@@ -193,6 +201,18 @@ public class MainApp extends Application {
         // Adicionar a imagem ao contentPane
         contentPane.getChildren().add(0, imageView);
 
+        // Músicas de fundo
+        List<String> musicFiles = List.of(
+                getClass().getResource("/Crawling.mp3").toExternalForm(),
+                getClass().getResource("/Numb.mp3").toExternalForm(),
+                getClass().getResource("/In The End.mp3").toExternalForm()
+        );
+        Random random = new Random();
+        playRandomMusic(musicFiles, random);
+
+        // Criar um painel para a interface (não necessário para a música, mas para um layout básico)
+        StackPane root = new StackPane();
+
         // Redireciona a saída do console para a area de texto
         PrintStream printStream = new PrintStream(new TextAreaOutputStream(outputArea));
         console.setOutput(printStream);
@@ -298,6 +318,27 @@ public class MainApp extends Application {
             String value = machine.getMemory().read(address);
             memoryTable.getItems().add(new MemoryEntry(String.format("%04X", address), value));
         }
+    }
+
+    private void playRandomMusic(List<String> musicFiles, Random random) {
+        // Escolher aleatoriamente uma música da lista
+        String musicFile = musicFiles.get(random.nextInt(musicFiles.size()));
+        
+        // Criar o Media e MediaPlayer
+        Media media = new Media(musicFile);
+        mediaPlayer = new MediaPlayer(media);
+
+        // Definir o volume, se necessário
+        mediaPlayer.setVolume(0.15); // Ajuste o volume conforme necessário
+
+        // Adicionar ouvinte para quando a música terminar
+        mediaPlayer.setOnEndOfMedia(() -> {
+            // Quando a música acabar, toca uma nova música aleatória
+            playRandomMusic(musicFiles, random);
+        });
+
+        // Iniciar a reprodução da música
+        mediaPlayer.play();
     }
 
     public static void main(String[] args) {
