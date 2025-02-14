@@ -42,6 +42,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.List;
 
@@ -53,6 +54,7 @@ public class MainApp extends Application {
     private TableView<RegisterEntry> registerTable;
     private TableView<MemoryEntry> memoryTable;
     private MediaPlayer mediaPlayer;
+    private String previousMusicFile = ""; 
 
     @Override
     public void start(Stage primaryStage) {
@@ -321,9 +323,20 @@ public class MainApp extends Application {
     }
 
     private void playRandomMusic(List<String> musicFiles, Random random) {
-        // Escolher aleatoriamente uma música da lista
-        String musicFile = musicFiles.get(random.nextInt(musicFiles.size()));
+        // Criar uma cópia da lista de músicas para manipulação
+        List<String> availableMusic = new ArrayList<>(musicFiles);
         
+        // Se houver uma música anterior, remova-a da lista para não tocá-la novamente
+        if (!previousMusicFile.isEmpty()) {
+            availableMusic.remove(previousMusicFile);
+        }
+        
+        // Escolher aleatoriamente uma música da lista de músicas restantes
+        String musicFile = availableMusic.get(random.nextInt(availableMusic.size()));
+        
+        // Atualiza a música anterior
+        previousMusicFile = musicFile;
+
         // Criar o Media e MediaPlayer
         Media media = new Media(musicFile);
         mediaPlayer = new MediaPlayer(media);
