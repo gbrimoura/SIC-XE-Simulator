@@ -13,7 +13,14 @@ import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.application.Application;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.input.KeyCode;
+import javafx.scene.image.ImageView;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
@@ -26,6 +33,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
@@ -165,7 +173,27 @@ public class MainApp extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
 
-        // Redireciona a saída do console para a orea de texto
+        // Carregar a imagem de plano de fundo
+        Image backgroundImage = new Image(getClass().getResource("/background.png").toExternalForm());
+
+        ImageView imageView = new ImageView(backgroundImage);
+        imageView.setFitWidth(contentPane.getWidth());  // Ajusta a largura
+        imageView.setFitHeight(contentPane.getHeight()); // Ajusta a altura
+        imageView.setOpacity(0.75);
+
+        // Criar o BackgroundImage
+        BackgroundImage background = new BackgroundImage(
+            backgroundImage,
+            BackgroundRepeat.NO_REPEAT,
+            BackgroundRepeat.NO_REPEAT,
+            BackgroundPosition.CENTER,
+            new BackgroundSize(100, 100, true, true, false, true)
+        );
+
+        // Adicionar a imagem ao contentPane
+        contentPane.getChildren().add(0, imageView);
+
+        // Redireciona a saída do console para a area de texto
         PrintStream printStream = new PrintStream(new TextAreaOutputStream(outputArea));
         console.setOutput(printStream);
 
@@ -176,7 +204,7 @@ public class MainApp extends Application {
 
         PauseTransition pause2 = new PauseTransition(Duration.seconds(2));
         pause2.setOnFinished(event -> {
-            outputArea.appendText("Para comecar digite um codigo e clique no botao \"montar\"." +
+            outputArea.appendText("Para comecar digite um codigo e clique no botao \"Montar\"." +
             "\nApos isso, use os botoes \"Executar\" para executar o programa de uma so vez, " +
             "ou \"Proximo\" para executar o programa passo a passo. Use tambom o o botao \"Parar\" " +
             "para parar a execucao ou o botao \"Sair\" para finalizar o programa.\n\n");
