@@ -33,6 +33,10 @@ public class Assembler {
         secondPass(sourceLines);
         return instructions;
     }
+    
+    public Map<String, Integer> getSymbolTable() {
+        return symbolTable;
+    }
 
     private void firstPass(List<String> lines) {
         for (String line : lines) {
@@ -59,19 +63,24 @@ public class Assembler {
             lineNumber++;
             String[] parts = line.trim().split("\\s+");
             if (parts.length == 0 || parts[0].startsWith(".")) continue;
-
+    
             String mnemonic;
             String operand = "";
-
+    
             if (parts[0].equalsIgnoreCase("START")) {
                 continue;
             }
-
+    
             if (!OPCODE_TABLE.containsKey(parts[0].toUpperCase())) {
-                // Primeira palavra é label, então segunda é mnemônico
-                mnemonic = parts[1].toUpperCase();
-                if (parts.length >= 3) {
-                    operand = parts[2];
+                // Se a primeira palavra não for um mnemônico, então é um label, e a segunda palavra é o mnemônico
+                if (parts.length >= 2) {
+                    mnemonic = parts[1].toUpperCase();
+                    if (parts.length >= 3) {
+                        operand = parts[2];
+                    }
+                } else {
+                    // Se não houver uma segunda palavra, o código pode continuar sem a instrução completa
+                    continue;
                 }
             } else {
                 mnemonic = parts[0].toUpperCase();
@@ -79,8 +88,15 @@ public class Assembler {
                     operand = parts[1];
                 }
             }
+    
             Instruction instruction = new Instruction("", mnemonic, new String[]{operand}, null, lineNumber);
             instructions.add(instruction);
         }
     }
+
+    public void clearSymbolTable() {
+        symbolTable.clear();  // Clears the symbol table
+        System.out.println("Tabela de símbolos limpa.");
+    }
+    
 }

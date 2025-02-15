@@ -20,7 +20,7 @@ public abstract class Simulation {
             while (true) {
                 System.out.print("> ");
                 String input = scanner.nextLine();
-                console.treatCommand(input);
+                console.treatCommand(input, "");
             }
         }
     }

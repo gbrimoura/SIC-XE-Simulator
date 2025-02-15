@@ -4,6 +4,8 @@ import sicxesimulator.simulation.virtualMachine.Memory;
 import java.io.*;
 import java.util.*;
 
+import javafx.scene.control.TextArea;
+
 public class FileHandler {
 
     private List<String> fileContent;
@@ -26,7 +28,6 @@ public class FileHandler {
         }
         return lines;
     }
-
 
     // Salva o conteúdo da memoria em um arquivo
     public void saveMemoryToFile(Memory memory, String filePath) {

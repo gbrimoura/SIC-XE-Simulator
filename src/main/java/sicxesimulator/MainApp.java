@@ -11,14 +11,10 @@ import javafx.util.Duration;
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
+import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.application.Application;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.input.KeyCode;
 import javafx.scene.image.ImageView;
 import javafx.scene.Scene;
@@ -26,20 +22,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaPlayer.Status;
-import javafx.util.Duration;
 import javafx.stage.Stage;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -52,10 +46,12 @@ public class MainApp extends Application {
     private TextArea outputArea;
     private TextArea inputField;
     private TableView<RegisterEntry> registerTable;
+    private TableView<SymbolEntry> symbolTable;
     private TableView<MemoryEntry> memoryTable;
     private MediaPlayer mediaPlayer;
     private String previousMusicFile = ""; 
 
+    @SuppressWarnings("unchecked")
     @Override
     public void start(Stage primaryStage) {
 
@@ -80,16 +76,16 @@ public class MainApp extends Application {
         outputArea = new TextArea();
         outputArea.setEditable(false);
         outputArea.setWrapText(true); // Ativa quebra automotica de linha
-        outputArea.setPrefWidth(screenWidth * 0.3);
-        outputArea.setPrefHeight(screenHeight * 0.4);
+        outputArea.setPrefWidth(screenWidth * 0.25);
+        outputArea.setPrefHeight(screenHeight * 0.3);
 
         // Aba de entrada
         inputField = new TextArea();
         inputField.setPromptText("Digite um programa...");
         inputField.setWrapText(true); // Permite que o texto quebre automaticamente
         inputField.setStyle("-fx-alignment: top-left; -fx-padding: 5px;");
-        inputField.setPrefWidth(screenWidth * 0.3);
-        inputField.setPrefHeight(screenHeight * 0.2);
+        inputField.setPrefWidth(screenWidth * 0.2);
+        inputField.setPrefHeight(screenHeight * 0.3);
 
         // Configura a açao para enviar apenas quando Ctrl+Enter for pressionado
         inputField.setOnKeyPressed(event -> {
@@ -99,6 +95,8 @@ public class MainApp extends Application {
         });
 
         // Criando os botoes
+        Button openFileButton = new Button("Abrir Arquivo");
+        openFileButton.setOnAction(event -> openFileChooser());
         Button montarButton = new Button("Montar");
         montarButton.setOnAction(event -> handleMontageAction());
         Button executeButton = new Button("Executar");
@@ -112,6 +110,7 @@ public class MainApp extends Application {
 
         // Definindo a largura dos botoes
         double buttonWidth = screenWidth * 0.05;
+        openFileButton.setPrefWidth(buttonWidth);
         montarButton.setPrefWidth(buttonWidth);
         executeButton.setPrefWidth(buttonWidth);
         proxButton.setPrefWidth(buttonWidth);
@@ -119,8 +118,9 @@ public class MainApp extends Application {
         sairButton.setPrefWidth(buttonWidth);
 
         // Criando a coluna para os botoes
-        VBox buttonColumn = new VBox(30, montarButton, executeButton, proxButton, limparButton, sairButton);
+        VBox buttonColumn = new VBox(15, openFileButton, montarButton, executeButton, proxButton, limparButton, sairButton);
         buttonColumn.setAlignment(Pos.CENTER_LEFT); // Alinhamento vertical ao centro
+        buttonColumn.setPadding(new Insets(0,155,0,40));
 
         // Cria a tabela de registradores
         registerTable = new TableView<>();
@@ -130,7 +130,7 @@ public class MainApp extends Application {
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
         registerTable.getColumns().addAll(nameColumn, valueColumn);
         registerTable.setPrefWidth(screenWidth * 0.12);
-        registerTable.setPrefHeight(screenHeight * 0.5);
+        registerTable.setPrefHeight(screenHeight * 0.8);
         registerTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Impede o redimensionamento das colunas pelo usuorio
 
         // Cria a tabela de endereços de memoria
@@ -141,8 +141,19 @@ public class MainApp extends Application {
         memoryValueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
         memoryTable.getColumns().addAll(addressColumn, memoryValueColumn);
         memoryTable.setPrefWidth(screenWidth * 0.12);
-        memoryTable.setPrefHeight(screenHeight * 0.5);
+        memoryTable.setPrefHeight(screenHeight * 0.8);
         memoryTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Impede o redimensionamento das colunas pelo usuorio
+
+        // Cria a tabela de símbolos
+        symbolTable = new TableView<>();
+        TableColumn<SymbolEntry, String> symbolNameColumn = new TableColumn<>("Símbolo");
+        symbolNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        TableColumn<SymbolEntry, String> symbolValueColumn = new TableColumn<>("Endereço");
+        symbolValueColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
+        symbolTable.getColumns().addAll(symbolNameColumn, symbolValueColumn);
+        symbolTable.setPrefWidth(screenWidth * 0.12);
+        symbolTable.setPrefHeight(screenHeight * 0.7);
+        symbolTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Impede o redimensionamento das colunas pelo usuorio
 
         // Criando um container para a tabela de registradores
         VBox registerBox = new VBox(registerTable);
@@ -154,29 +165,29 @@ public class MainApp extends Application {
         memoryBox.setPadding(new Insets(10));
         memoryBox.setAlignment(Pos.TOP_RIGHT); // Alinha ao topo direito
 
-        // Criando a caixa horizontal para entrada e registradores (CORREÇaO)
+        // Criando a caixa horizontal para entrada e registradores (CORREÇAO)
         HBox topBox = new HBox(10, inputField, buttonColumn, registerBox); // Coloca a tabela junto com a entrada
-        topBox.setPadding(new Insets(15));
+        topBox.setPadding(new Insets(40,0,0,0));
         topBox.setAlignment(Pos.TOP_CENTER); // Alinha ao topo direito
-        topBox.setPrefHeight(screenHeight * 0.27);
+        topBox.setPrefHeight(screenHeight * 0.3);
 
         // Criando a caixa horizontal para saída
-        HBox outputBox = new HBox(10, outputArea, memoryBox);
-        outputBox.setPadding(new Insets(5, 15, 45, 55));
+        HBox outputBox = new HBox(10, outputArea, memoryBox, symbolTable);
+        outputBox.setPadding(new Insets(0,0,40,0));
         outputBox.setAlignment(Pos.BOTTOM_CENTER);
         outputBox.setPrefHeight(screenHeight * 0.3);
 
         // Criando o layout principal
         BorderPane contentPane = new BorderPane();
-        contentPane.setTop(topBox);  // Agora a entrada e registradores ficam no topo
-        contentPane.setBottom(outputBox);  // A saída fica na parte inferior
+        contentPane.setTop(topBox);         // Agora a entrada e registradores ficam no topo
+        contentPane.setBottom(outputBox);   // A saída fica na parte inferior
 
         // Atualiza as tabelas
         updateRegisterTable(machine);
         updateMemoryTable(machine);
 
         // Criar a cena
-        Scene scene = new Scene(contentPane, screenWidth * 0.6, screenHeight * 0.6);
+        Scene scene = new Scene(contentPane, screenWidth * 0.7, screenHeight * 0.7);
 
         // Configura a janela
         primaryStage.setScene(scene);
@@ -191,15 +202,6 @@ public class MainApp extends Application {
         imageView.setFitHeight(contentPane.getHeight()); // Ajusta a altura
         imageView.setOpacity(0.75);
 
-        // Criar o BackgroundImage
-        BackgroundImage background = new BackgroundImage(
-            backgroundImage,
-            BackgroundRepeat.NO_REPEAT,
-            BackgroundRepeat.NO_REPEAT,
-            BackgroundPosition.CENTER,
-            new BackgroundSize(100, 100, true, true, false, true)
-        );
-
         // Adicionar a imagem ao contentPane
         contentPane.getChildren().add(0, imageView);
 
@@ -211,9 +213,6 @@ public class MainApp extends Application {
         );
         Random random = new Random();
         playRandomMusic(musicFiles, random);
-
-        // Criar um painel para a interface (não necessário para a música, mas para um layout básico)
-        StackPane root = new StackPane();
 
         // Redireciona a saída do console para a area de texto
         PrintStream printStream = new PrintStream(new TextAreaOutputStream(outputArea));
@@ -243,14 +242,56 @@ public class MainApp extends Application {
         processCommand(command);
     }
 
+    private void openFileChooser() {
+        // Criação do FileChooser
+        FileChooser fileChooser = new FileChooser();
+
+        // Definindo filtros para tipos de arquivos, como arquivos de texto (.txt)
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Text Files (*.txt)", "*.txt", "*.asm");
+        fileChooser.getExtensionFilters().add(extFilter);
+
+        // Exibir a caixa de diálogo para abrir o arquivo
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null) {
+            // Se um arquivo for selecionado, vamos ler o conteúdo e colocar no TextArea
+            readFileAndDisplay(selectedFile);
+        } else {
+            System.out.println("Nenhum arquivo selecionado.");
+        }
+    }
+
+    private void readFileAndDisplay(File file) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            StringBuilder content = new StringBuilder();
+            String line;
+            
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+    
+            inputField.setText(content.toString());
+        } catch (IOException e) {
+            outputArea.appendText("Erro ao ler o arquivo: " + e.getMessage() + "\n");
+        }
+    }
+
     // TODO ajustar a montagem para ser feita com o código de imput do usuário
     private void handleMontageAction() {
+        // Captura o conteúdo do campo de entrada
+        String inputCode = inputField.getText();  // Get text from the input field
+    
+        // Limpa a área de saída
         outputArea.clear();
         outputArea.appendText("> montar\n");
+    
+        // Passa o código de entrada para o método de montagem da classe Console
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
-            console.treatCommand("montar");
-            updateRegisterTable(console.getMachine());
+            // Pass the inputCode to the treatCommand method
+            console.treatCommand("montar", inputCode);  // Passa o código de entrada para a função
+            updateRegisterTable(console.getMachine());  // Update the register table
+            updateSymbolTable(console.getAssembler());  // Update the symbol table
         });
         pause.play();
     }
@@ -260,7 +301,7 @@ public class MainApp extends Application {
         outputArea.appendText("> exec\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
-            console.treatCommand("exec");
+            console.treatCommand("exec", "");
             updateRegisterTable(console.getMachine());
         });
         pause.play();
@@ -271,30 +312,42 @@ public class MainApp extends Application {
         outputArea.appendText("> prox\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
-            console.treatCommand("prox");
+            console.treatCommand("prox", "");
             updateRegisterTable(console.getMachine());
         });
         pause.play();
     }
 
-    // TODO função não implementada "limpar"
     private void handleClearAction() {
-        outputArea.clear();
-        outputArea.appendText("> limpar\n");
+        outputArea.clear();  // Limpa a área de saída
+        inputField.clear();  // Limpa o campo de entrada
+        outputArea.appendText("> limpar\n");  // Exibe no log de saída
+    
+        registerTable = new TableView<RegisterEntry>();
+        symbolTable = new TableView<SymbolEntry>();
+        memoryTable = new TableView<MemoryEntry>();
+    
+        // Atualiza as tabelas para garantir que estejam limpas
+        updateRegisterTable(console.getMachine());
+        updateSymbolTable(console.getAssembler());
+        updateMemoryTable(console.getMachine());
+    
+        // Pausa e reinicia a execução
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
-            console.treatCommand("limpar");
-            updateRegisterTable(console.getMachine());
+            console.treatCommand("limpar", "");  // Chama o comando de limpar no console
+            updateRegisterTable(console.getMachine());  // Atualiza a tabela de registradores
         });
         pause.play();
     }
+    
 
     private void handleExitAction() {
         outputArea.clear();
         outputArea.appendText("> sair\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
-            console.treatCommand("sair");
+            console.treatCommand("sair", "");
             updateRegisterTable(console.getMachine());
         });
         pause.play();
@@ -304,7 +357,7 @@ public class MainApp extends Application {
         outputArea.appendText("> " + command + "\n");
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(event -> {
-            console.treatCommand(command);
+            console.treatCommand(command, "");
             updateRegisterTable(console.getMachine());
         });
         pause.play();
@@ -317,6 +370,13 @@ public class MainApp extends Application {
             String value = machine.getRegister(name).getValue();
             registerTable.getItems().add(new RegisterEntry(name, value));
         }
+    }
+
+    private void updateSymbolTable(Assembler assembler) {
+        symbolTable.getItems().clear();
+        assembler.getSymbolTable().forEach((name, address) -> {
+            symbolTable.getItems().add(new SymbolEntry(name, String.format("%04X", address)));
+        });
     }
 
     private void updateMemoryTable(Machine machine) {

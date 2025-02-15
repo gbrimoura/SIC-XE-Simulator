@@ -31,26 +31,41 @@ public class Console {
         System.out.flush();
     }
 
-    public void treatCommand(String command) {
+    public void treatCommand(String command,  String inputCode) {
         String[] args = command.split(" ");
         switch (args[0]) {
             case "montar":
                 cleanConsole();
-                if (args.length != 2) {
-                    System.out.println("Uso: montar [arquivo.asm]");
-                    return;
+                if (inputCode != null && !inputCode.isEmpty()) {
+                    // Handle direct input code (split by lines)
+                    List<String> sourceLines = new ArrayList<>();
+                    for (String line : inputCode.split("\n")) {
+                        sourceLines.add(line.trim());
+                    }
+
+                    // Now pass the List<String> to the assembler
+                    List<Instruction> assembledInstructions = assembler.assemble(sourceLines);
+                    if (assembledInstructions.isEmpty()) {
+                        System.out.println("Falha ao montar o programa.");
+                    }
+                    instructions = assembledInstructions;
+                    System.out.println("Montagem concluida com sucesso.");
+                } else if (args.length == 2) {
+                    // Case where a file name is provided
+                    List<String> sourceLines = fileHandler.readFileLines(args[1]);
+                    if (sourceLines == null) {
+                        System.out.println("Erro ao ler o arquivo.");
+                        return;
+                    }
+                    List<Instruction> assembledInstructions = assembler.assemble(sourceLines);
+                    if (assembledInstructions.isEmpty()) {
+                        System.out.println("Falha ao montar o programa.");
+                    }
+                    instructions = assembledInstructions;
+                    System.out.println("Montagem concluida com sucesso.");
+                } else {
+                    System.out.println("Uso: montar [arquivo.asm] ou montar [código]");
                 }
-                List<String> sourceLines = fileHandler.readFileLines(args[1]);
-                if (sourceLines == null) {
-                    System.out.println("Erro ao ler o arquivo.");
-                    return;
-                }
-                List<Instruction> assembledInstructions = assembler.assemble(sourceLines);
-                if (assembledInstructions.isEmpty()) {
-                    System.out.println("Falha ao montar o programa.");
-                }
-                instructions = assembledInstructions;
-                System.out.println("Montagem concluida com sucesso.");
                 break;
             case "prox":
                 cleanConsole();
@@ -157,6 +172,13 @@ public class Console {
         // Reinicializar o arquivo lido
         fileHandler.clear();  // Supondo que o FileHandler tenha um método clear() para limpar o conteúdo lido
         
+        // Limpar tabela de símbolos
+        assembler.clearSymbolTable();  // Chamada para limpar a tabela de símbolos
+        
         System.out.println("Sistema resetado.");
+    }
+
+    public Assembler getAssembler() {
+        return this.assembler;
     }
 }
