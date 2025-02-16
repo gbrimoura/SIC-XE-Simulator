@@ -1,22 +1,22 @@
 # Simulador SIC/XE
-Este programa simula um sistema SIC/XE em Java. Ele possui as funções de construção de memória, registradores, um analisador sintático, um console e um interpretador.
+Este programa simula um sistema SIC/XE em Java. Ele possui as funções de máquina virtual e montador.
 
-Para executar o simulador, digite 'analisar_arq (arquivo com extensão)'.  
-Depois digite 'iniciar' para atribuir endereços a cada instrução.  
-Depois digite 'prox' para avançar pelas instruções.
+Para executar o simulador SIC/XE, siga as etapas abaixo:
 
-Você também pode:  
-Digitar 'visualizar_reg (qualquer registrador)' a qualquer momento para ver o valor nesse registrador específico.  
-Digitar 'visualizar_mem (endereço)' para ver os dados armazenados em um local de memória específico.  
-Digitar 'alterar_mem (endereço) (valor do byte)' para alterar o valor do byte em um endereço de memória específico.  
-Digitar 'alterar_reg (registrador) (valor hexadecimal de seis dígitos)' para alterar o valor em um registrador específico.  
-Digitar 'parar' para interromper o programa.  
-Digitar 'creditos' para ver os créditos do programa.  
-Digitar 'carregar_arq' para importar uma memória existente de um arquivo de texto.  
-Digitar 'salvar_arq' para exportar a memória existente para um arquivo de texto.  
-Digitar 'exit' para sair da simulação.
+-Certifique-se de que o Maven e o Java estejam instalados em seu sistema.
+-Em seguida, instale as dependências do projeto executando o comando 'mvn install' no terminal.
+-Após a instalação das dependências, execute o comando 'mvn clean compile' para limpar qualquer artefato de builds anteriores e compilar o código-fonte do projeto.
+-Por último, para iniciar o simulador SIC/XE com a interface gráfica, use o comando 'mvn javafx:run'.
 
-Você também pode digitar 'help' para ver a lista de comandos.
+Dentro da interface você encontrará as seguintes opções:
+
+-Abrir Arquivo: Permite que você abra um arquivo de código-fonte para ser processado pelo simulador.
+-Montar: Com esta opção, o código-fonte carregado será montado pelo montador de duas passagens, gerando o código de máquina correspondente.
+-Executar: Após montar o código, você pode executar a simulação do código de máquina, visualizando os resultados do processamento.
+-Próximo: Avança para a próxima instrução, permitindo a execução passo a passo do código.
+-Limpar: Limpa os dados atuais, preparando o simulador para uma nova execução ou carregamento de outro arquivo.
+-Sair: Encerra o simulador.
+
 
 ## Créditos
 Arthur Alves - Organização, discussão, ajustes.  
