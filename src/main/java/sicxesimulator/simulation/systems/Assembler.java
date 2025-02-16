@@ -4,18 +4,20 @@ import java.util.*;
 import sicxesimulator.simulation.virtualMachine.operations.Instruction;
 
 /**
- * Montador para a arquitetura SIC/XE.
+ * Montador para a arquitetura SIC/XE com suporte completo a duas passagens.
  */
 public class Assembler {
+    // Tabela de símbolos para armazenar rótulos e seus respectivos endereços
     private Map<String, Integer> symbolTable = new HashMap<>();
+    // Lista de instruções geradas após a montagem
     private List<Instruction> instructions = new ArrayList<>();
     private int locationCounter = 0;
     private int startAddress = 0;
 
-    // Tabela de opcodes mapeando cada mnemônico SIC/XE para seu código hexadecimal
+    // Tabela de opcodes SIC/XE
     private static final Map<String, String> OPCODE_TABLE = Map.ofEntries(
             Map.entry("ADD", "18"), Map.entry("ADDR", "90"),
-            Map.entry("AND", "40"), Map.entry("CLEAR", "4"), Map.entry("COMP", "28"),
+            Map.entry("AND", "40"), Map.entry("CLEAR", "B4"), Map.entry("COMP", "28"),
             Map.entry("COMPR", "A0"), Map.entry("DIV", "24"), Map.entry("DIVR", "9C"),
             Map.entry("J", "3C"), Map.entry("JEQ", "30"), Map.entry("JGT", "34"),
             Map.entry("JLT", "38"), Map.entry("JSUB", "48"), Map.entry("LDA", "00"),
@@ -28,6 +30,7 @@ public class Assembler {
             Map.entry("TIX", "2C"), Map.entry("TIXR", "B8"), Map.entry("WD", "DC")
     );
 
+    // Método principal que monta o código-fonte fornecido
     public List<Instruction> assemble(List<String> sourceLines) {
         firstPass(sourceLines);
         secondPass(sourceLines);
@@ -38,25 +41,52 @@ public class Assembler {
         return symbolTable;
     }
 
+    /**
+     * Primeira passagem: cria a tabela de símbolos e calcula os endereços das instruções.
+     */
     private void firstPass(List<String> lines) {
         for (String line : lines) {
             String[] parts = line.trim().split("\\s+");
             if (parts.length == 0 || parts[0].startsWith(".")) continue;
 
+            // Se for uma diretiva START, define o endereço inicial
             if (parts[0].equalsIgnoreCase("START")) {
                 startAddress = Integer.parseInt(parts[1], 16);
                 locationCounter = startAddress;
                 continue;
             }
 
-            // Se a primeira palavra não é um mnemônico, assume-se label
-            if (!OPCODE_TABLE.containsKey(parts[0])) {
-                symbolTable.put(parts[0], locationCounter);
+            String label = null;
+            String mnemonic;
+            // Se a primeira palavra não for um opcode, é um rótulo
+            if (!OPCODE_TABLE.containsKey(parts[0].toUpperCase())) {
+                label = parts[0];
+                mnemonic = parts.length > 1 ? parts[1].toUpperCase() : "";
+                if (label != null) {
+                    symbolTable.put(label, locationCounter);
+                }
+            } else {
+                mnemonic = parts[0].toUpperCase();
             }
-            locationCounter += 3; // Supõe-se instruções de tamanho fixo (3 bytes); TODO, Revisar.
+
+            // Determina o tamanho da instrução
+            if (OPCODE_TABLE.containsKey(mnemonic)) {
+                locationCounter += 3; // Supõe formato padrão 3
+            } else if (mnemonic.equals("WORD")) {
+                locationCounter += 3;
+            } else if (mnemonic.equals("BYTE")) {
+                locationCounter += (parts[2].length() - 3) / 2;
+            } else if (mnemonic.equals("RESB")) {
+                locationCounter += Integer.parseInt(parts[2]);
+            } else if (mnemonic.equals("RESW")) {
+                locationCounter += Integer.parseInt(parts[2]) * 3;
+            }
         }
     }
 
+    /**
+     * Segunda passagem: traduz instruções para código de máquina.
+     */
     private void secondPass(List<String> lines) {
         int lineNumber = 0;
         for (String line : lines) {
@@ -72,14 +102,12 @@ public class Assembler {
             }
     
             if (!OPCODE_TABLE.containsKey(parts[0].toUpperCase())) {
-                // Se a primeira palavra não for um mnemônico, então é um label, e a segunda palavra é o mnemônico
                 if (parts.length >= 2) {
                     mnemonic = parts[1].toUpperCase();
                     if (parts.length >= 3) {
                         operand = parts[2];
                     }
                 } else {
-                    // Se não houver uma segunda palavra, o código pode continuar sem a instrução completa
                     continue;
                 }
             } else {
@@ -89,14 +117,27 @@ public class Assembler {
                 }
             }
     
-            Instruction instruction = new Instruction("", mnemonic, new String[]{operand}, null, lineNumber);
+            // Obtém o opcode correspondente
+            String opcode = OPCODE_TABLE.getOrDefault(mnemonic, "");
+            String operandAddress = "0000";
+            
+            // Resolve o endereço do operando usando a tabela de símbolos
+            if (!operand.isEmpty()) {
+                if (symbolTable.containsKey(operand)) {
+                    operandAddress = String.format("%04X", symbolTable.get(operand));
+                }
+            }
+    
+            // Gera o código de máquina final
+            String machineCode = opcode + operandAddress;
+            Instruction instruction = new Instruction(machineCode, mnemonic, new String[]{operand}, null, lineNumber);
             instructions.add(instruction);
         }
     }
 
+    // Método para limpar a tabela de símbolos
     public void clearSymbolTable() {
-        symbolTable.clear();  // Clears the symbol table
+        symbolTable.clear();
         System.out.println("Tabela de símbolos limpa.");
     }
-    
 }
